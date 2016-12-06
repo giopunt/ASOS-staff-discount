@@ -2,7 +2,7 @@
     "name": "Asos Staff Discount",
     "description": "This extension will show you decreased price by 40% for the current page",
     "author": "Giovanni Puntil",
-    "version": "1.1.2",
+    "version": "2.0.1",
     "background": {
         "scripts": ["background.js"]
       },

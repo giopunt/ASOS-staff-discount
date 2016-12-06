@@ -54,8 +54,8 @@
         } else if(this.isCartPage) {
             $(document).delegate("#totalAmount", "DOMSubtreeModified", this.applyDiscountCartPage.bind(this));
         }
-        $("#quickViewPopup .current-price").on("DOMSubtreeModified", this.applyDiscountQuickView.bind(this));
-        $(".quickview-panel .current-price").on("DOMSubtreeModified", this.applyDiscountQuickView.bind(this));
+        $("#quickViewPopup .current-price").on("DOMSubtreeModified propertychange", this.applyDiscountQuickView.bind(this));
+        $(".quickview-panel .current-price [data-bind*='currentPrice']").on("DOMSubtreeModified propertychange", this.applyDiscountQuickView.bind(this));
         $("#miniBasket .total").on("DOMSubtreeModified", this.applyDiscountMiniCart.bind(this));
 
     }
@@ -65,11 +65,11 @@
 
         this.isBeautyProduct = this.detectBeautyPage();
         this.Gender = this.detectPageGender();
-        this.isProductPage = this.location.indexOf("pgeproduct.aspx") > -1;
+        this.isProductPage = this.location.indexOf("/prd/") > -1 || this.location.indexOf("/grp/") > -1;
         this.isCategoryPage = this.location.indexOf("/men/") > -1 || this.location.indexOf("/women/") > -1 || this.location.indexOf("/pgecategory.aspx") > -1;
-        this.isSearchPage = this.location.indexOf("/search/") > -1;
-        this.isCartPage = this.location.indexOf("pgebasket.aspx") > -1;
-        this.isSavedItemsPage = this.location.indexOf("pgesavedlist.aspx") > -1;
+        this.isSearchPage = $(".results > ul").length > 0;
+        this.isCartPage = $('#bagApp').length > 0;
+        this.isSavedItemsPage = $('#savedItemsApp').length > 0;
     }
 
     DISCO.prototype.detectBeautyPage = function(){
@@ -103,15 +103,7 @@
     DISCO.prototype.selectItems = function(){
 
         if (this.isProductPage) {
-
-            if($(".outlet-current-price").length){
-                this.priceContainer = $(".outlet-current-price");
-            }else if($(".previousprice").length){
-                this.priceContainer = $(".previousprice");
-            }else{
-                this.priceContainer = $(".product_price_details");
-            }
-
+            this.priceContainer = $(".current-price");
             this.applyDiscountPDP();
         }else if(this.isSearchPage){
             this.priceContainer = $(".price-wrap.price-current");
@@ -159,20 +151,21 @@
                 this.fetchCurrency(i);
                 var current_price_dom = this.priceContainer.eq(i);
                 if(!current_price_dom.find(".disco-applied").length){
+                    $('.asos-product .product-hero span').css('float', 'none');
                     var price = parseFloat( current_price_dom.text().replace(this.currency, "")  );
                     var after_price = (price * discountFactor).toFixed(2);
 
                     if(!isNaN(after_price)){
-                        var inner_html = "<div class='disco-applied' style='margin:0px 0 5px;padding:10px;'>";
-                        inner_html += "<div style='color:red;font-size:0.8em;'>with ASOS discount</div>" + "<div style='color:red;'>"+ this.currency + after_price + "</div>";
-                        inner_html += "<div style='color:green;font-size:0.6em;'>You save</div>" + "<div style='color:green;font-size:0.8em;'>"+ this.currency + (price - after_price).toFixed(2) + "!</div>";
+                        var inner_html = "<div class='disco-applied' style='margin: 10px -10px 10px;padding: 10px;background: #fffbbf;color: #000 !important;font-weight: 400;'>";
+                        inner_html += "<div style=''>with ASOS discount</div>" + "<div style='font-weight:700;'>"+ this.currency + after_price + "</div>";
+                        inner_html += "<div style='font-size:14px;'>You save</div>" + "<div style='font-weight: 700;font-size:14px;'>"+ this.currency + (price - after_price).toFixed(2) + "!</div>";
                         inner_html += "</div>";
 
                         //current_price_dom.hide();
                         //$(".discounted-price").hide();
                         //current_price_dom.hide();
 
-                        current_price_dom.css("color", "#000");
+                        //current_price_dom.css("color", "#000");
                         current_price_dom.after(inner_html);
                     }
                 }
@@ -194,13 +187,15 @@
                 var after_price = (price * discountFactor).toFixed(2);
 
                 if(!isNaN(after_price)){
-                    var inner_html = "<div class='disco-applied quick-view' style='margin:5px 0;font-size:13px;font-weight:bold;'>";
-                    inner_html += "<div style='color:#900;margin:0;padding:0;height:16px;'>with ASOS discount</div>" + "<div style='color:#900;margin:0;padding:0;height:16px;'>"+ this.currency + after_price + "</div>";
-                    inner_html += "<div style='color:green;margin:0;padding:0;height:16px;'>You save</div>" + "<div style='color:green;margin:0;padding:0;height:16px;'>"+ this.currency + (price - after_price).toFixed(2) + "!</div>";
+                    var inner_html = "<div class='disco-applied quick-view' style='margin: 10px -10px 10px;padding: 10px;background: #fffbbf;color: #000 !important;font-weight: 400;'>";
+                    inner_html += "<div style='margin:0 5px 5px 0px;padding:0;height:16px;line-height: 16px;font-size:0.85em;'>with ASOS discount</div>" + "<div style='font-weight:700;font-size:0.85em;margin:0 5px 5px 0px;padding:0;height:16px;line-height: 16px;'>"+ this.currency + after_price + "</div>";
+                    inner_html += "<div style='font-size:13px;margin:0 5px 3px 0px;padding:0;height:16px;line-height: 16px;'>You save</div>" + "<div style='font-size:13px;font-weight:700;margin:0 5px 5px 0px;padding:0;height:16px;line-height: 16px;'>"+ this.currency + (price - after_price).toFixed(2) + "!</div>";
                     inner_html += "</div>";
 
-                    $("#quickViewPopup .previous-price span").hide();
+                    $("#quickViewPopup .previous-price span, .quickview-panel .previous-price").hide();
+                    $('#quickViewPopup .previous-price span, .quickview-panel .previous-price').css('color', '#fff');
 
+                    current_price_dom.css('float', 'none');
                     current_price_dom.after(inner_html);
                 }
             }
