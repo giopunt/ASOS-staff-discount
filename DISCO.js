@@ -37,7 +37,6 @@
         if(this.isEnabled){
             this.fetchPageType();
             this.selectItems();
-            this.applyDiscountMiniCart();
 
             if(!this.doneOnce)
                 this.doneOnce = true;
@@ -47,16 +46,24 @@
 
     DISCO.prototype.bindEvents = function(){
 
-        if(this.isSearchPage){
-            $(document).delegate(".results > ul", "DOMSubtreeModified", this.onChangeDiscountSearchPage.bind(this));
-        }else if(this.isCategoryPage){
-            $(document).delegate("div#items-wrapper", "DOMSubtreeModified", this.onChangeDiscountCategoryPage.bind(this));
-        } else if(this.isCartPage) {
-            $(document).delegate("#totalAmount", "DOMSubtreeModified", this.applyDiscountCartPage.bind(this));
+      var _this = this;
+
+      setTimeout((function() {
+        if(_this.isSearchPage){
+            $(document).delegate(".results > ul", "DOMSubtreeModified", _this.onChangeDiscountSearchPage.bind(_this));
+        }else if(_this.isCategoryPage){
+            $(document).delegate("div#items-wrapper", "DOMSubtreeModified", _this.onChangeDiscountCategoryPage.bind(_this));
+        } else if(_this.isCartPage) {
+            $(document).on('click','button.bag-item-edit-update', _this.applyDiscountCartPageUpdate.bind(_this));
         }
-        $("#quickViewPopup .current-price").on("DOMSubtreeModified propertychange", this.applyDiscountQuickView.bind(this));
-        $(".quickview-panel .current-price [data-bind*='currentPrice']").on("DOMSubtreeModified propertychange", this.applyDiscountQuickView.bind(this));
-        $("#miniBasket .total").on("DOMSubtreeModified", this.applyDiscountMiniCart.bind(this));
+
+        $("#quickViewPopup .current-price").on("DOMSubtreeModified propertychange", _this.applyDiscountQuickView.bind(_this));
+        $(".quickview-panel .current-price").on("DOMSubtreeModified propertychange", _this.applyDiscountQuickView.bind(_this));
+        $('#miniBagApp .bag-link-price').on("DOMSubtreeModified propertychange", _this.applyDiscountMiniCart.bind(_this));
+        $('.bag-link.bag-link--desktop').mouseover(_this.applyDiscountMiniCartUpdate.bind(_this));
+        $('.component.might-like .arrow.active, .component.might-like ul.nav li a').on('click', _this.applyDiscountYMAL.bind(_this))
+        _this.applyDiscountMiniCart();
+      }),2000);
 
     }
 
@@ -101,25 +108,27 @@
     }
 
     DISCO.prototype.selectItems = function(){
+        var _this = this;
 
-        if (this.isProductPage) {
-            this.priceContainer = $(".current-price");
-            this.applyDiscountPDP();
-        }else if(this.isSearchPage){
-            this.priceContainer = $(".price-wrap.price-current");
-            this.applyDiscountSearchPage();
-        }else if(this.isCategoryPage){
-            this.priceContainer = $("ul#items .productprice").length ? $("ul#items .productprice") : $(".price-wrap.price-current");
-            this.applyDiscountCategoryPage();
-        }else if(this.isCartPage){
-            this.priceContainer = $("#totalAmount");
-            this.applyDiscountCartPage();
-        }else if(this.isSavedItemsPage){
-            this.priceContainer = $("ul#sortable li");
-            this.applyDiscountSavedItemPage();
-        }
+        setTimeout((function() {
+          if (_this.isProductPage) {
+              _this.priceContainer = $(".current-price");
+              _this.applyDiscountPDP();
+          }else if(_this.isSearchPage){
+              _this.priceContainer = $(".price-wrap.price-current");
+              _this.applyDiscountSearchPage();
+          }else if(_this.isCategoryPage){
+              _this.priceContainer = $("ul#items .productprice").length ? $("ul#items .productprice") : $(".price-wrap.price-current");
+              _this.applyDiscountCategoryPage();
+          }else if(_this.isCartPage){
+              _this.applyDiscountCartPage();
+          }else if(_this.isSavedItemsPage){
+              _this.priceContainer = $("ul.savedItems-items li");
+              _this.applyDiscountSavedItemPage();
+          }
 
-        this.applyDiscountYMAL();
+          _this.applyDiscountYMAL();
+        }),1500);
     };
 
     DISCO.prototype.fetchCurrency = function(i){
@@ -138,7 +147,38 @@
         }
     }
 
+    DISCO.prototype.detectCurrency = function(price){
+        if(price) {
+            var pricetext = price;
+            var currency;
+
+            if(pricetext.indexOf("£") != -1){
+                currency = "£";
+            }else if(pricetext.indexOf("$") != -1){
+                currency = "$";
+            }else if(pricetext.indexOf("€") != -1){
+                currency = "€";
+            }else if(pricetext.indexOf("руб.") != -1){
+                currency = "руб.";
+            }
+
+            return currency;
+        }
+    }
+
     DISCO.prototype.applyDiscountYMAL = function(){
+      var _this = this;
+      $('.component.might-like .price-container:not(".asos-staff")').each(function(){
+        var price = $(this).find('.price').text();
+        var currency = _this.detectCurrency(price);
+        var disocuntedPrice = (parseFloat($(this).find('.price').text().replace(currency, '')) * 0.6).toFixed(2);
+
+        if(!isNaN(disocuntedPrice)){
+          $(this).addClass('asos-staff');
+          $(this).find('.price').css('text-decoration', 'line-through');
+          $(this).find('.price').after('<div style="float:left;"><span style="font-size:14px">ASOS STAFF</span>' + currency + disocuntedPrice + '</div>');
+        }
+      });
     }
 
     DISCO.prototype.applyDiscountPDP = function(){
@@ -297,67 +337,97 @@
                 this.fetchCurrency(i);
                 var current_price_dom = undefined;
 
-                current_price_dom = this.priceContainer.eq(i).find(".product-price");
+                current_price_dom = this.priceContainer.eq(i).find(".savedItems-item-price--current");
 
                 var price = parseFloat( current_price_dom.text().replace(this.currency, "").replace("NOW", "").replace("FROM", "")  );
                 var after_price = (price * 0.6).toFixed(2);
 
 
                 if(!isNaN(after_price)){
-                    var inner_html = "<div class='disco-applied'>";
-                    inner_html += "<p class='product-price-decrease'>"+ this.currency + price.toFixed(2) + "</p>";
-                    inner_html += "<p class='product-price'>"+ this.currency + after_price + "</p>";
-                    inner_html += "</div>";
-                    current_price_dom.hide();
+                    var inner_html = "<span style='font-size:13px;font-weight:700;display:block;margin: 5px -5px 5px;padding:5px 7px;background: #fffbbf;' class='disco-applied'>ASOS STAFF " + this.currency + after_price + "</span>";
+                    //current_price_dom.hide();
                     this.priceContainer.eq(i).find(".product-price, .product-price-decrease").hide();
 
                     this.priceContainer.eq(i).find('.expiry-datestamp').after("<span class='expiry-datestamp' style='margin-right:5px;float:left;'>ASOS Staff price</span>");
                     current_price_dom.after(inner_html);
                 }
             }
+
+            $('.savedItems-item-holder').height('600px')
         }
     }
 
     DISCO.prototype.applyDiscountCartPage = function(){
         //Basket
-        this.fetchCurrency(0);
-        var current_price_dom = this.priceContainer.eq(0);
-        var price = parseFloat( current_price_dom.text().replace(this.currency, "")  );
-        var after_price = (price * 0.6).toFixed(2);
+        var _this = this;
 
-        if(!isNaN(after_price)){
-            var inner_html = "<span style='color:#900;'>"+ this.currency + after_price + "</span>";
-            current_price_dom.hide();
-            current_price_dom.after(inner_html);
+        $('.asos-discount-price-0, .asos-discount-price-1, .asos-discount-price, .asos-save-price-1, .asos-save-price').remove();
+        $('.bag-item-descriptions .bag-item-price-holder').each(function(){
+          var price = $(this).find('.bag-item-price--current').text();
+          var currency = _this.detectCurrency(price);
+          var disocuntedPrice = (parseFloat(price.replace(currency, '')) * 0.6).toFixed(2);
 
-            $("dt.total")[0].innerHTML = "Total Cost with ASOS discount";
-            $("dd.total").after("<dt class='you-save total' style='border-top:0px;color: green;margin:0;padding:0;'>You Save</dt>");
-            $("dt.you-save").after("<dd class='total' style='border-top:0px;color: green;margin:0;padding:0;'><span style='padding-right:14px;'>" + ( this.currency + (price - after_price).toFixed(2) ) + "</span></dd>")
+          if(!isNaN(disocuntedPrice)){
+            $(this).addClass('asos-staff');
+            $(this).find('.bag-item-price--current').after('<div class="asos-discount-price-0" style="font-size: 13px;font-weight:700;margin: 10px -7px 5px;padding: 7px;background: #fffbbf;">ASOS STAFF ' + currency + disocuntedPrice + '</div>');
+          }
+        });
+
+        $(".bag-total-price.bag-total-price--subtotal").each(function(){
+          var price = $(this).text();
+          var currency = _this.detectCurrency(price);
+          var disocuntedPrice = (parseFloat(price.replace(currency, '')) * 0.6).toFixed(2);
+          var saveAmount = (parseFloat(price.replace(currency, '')) * 0.4).toFixed(2);
+          if(!isNaN(disocuntedPrice)){
+            $(this).addClass('asos-staff');
+            $(this).after('<div class="asos-discount-price" style="font-size: 13px;font-weight:700;margin: 14px -7px 0;padding: 7px;background: rgb(231,243,246);">Discounted Sub-total <span style="font-weight:400;float:right;">' + currency + disocuntedPrice + '<span></div>');
+            $('.asos-discount-price').after('<div class="asos-save-price" style="font-size: 13px;font-weight:700;margin: 10px -7px 0;padding: 7px;background: #fffbbf;">Saving tot. <span style="font-weight:400;float:right;">' + currency + saveAmount + '<span></div>');
+          }
+        });
+
+        var price = $('.bag-subtotal-price').text();
+        var currency = this.detectCurrency(price);
+        var disocuntedPrice = (parseFloat(price.replace(currency, '')) * 0.6).toFixed(2);
+        var saveAmount = (parseFloat(price.replace(currency, '')) * 0.4).toFixed(2);
+        if(!isNaN(disocuntedPrice)){
+          $('.bag-subtotal-price').addClass('asos-staff');
+          $('.bag-subtotal-price').after('<div class="asos-discount-price-1" style="font-size: 13px;font-weight:700;margin: 14px -7px 0;padding: 7px;background: rgb(231,243,246);">Discounted Sub-total <span style="font-weight:700;float:right;min-width:95px;">' + currency + disocuntedPrice + '<span></div>');
+          $('.asos-discount-price-1').after('<div class="asos-save-price-1" style="font-size: 13px;font-weight:700;margin: 10px -7px 0;padding: 7px;background: #fffbbf;">Saving tot.<span style="font-weight:700;float:right;min-width:95px;">' + currency + saveAmount + '<span></div>');
         }
+        $('.bag-item-remove').css('top', '20px')
     }
 
     DISCO.prototype.applyDiscountMiniCart = function(){
         //Mini Cart
-
-        this.fetchCurrency(0);
-        var current_price_dom = $("#miniBasket .total");
-        var price = parseFloat( current_price_dom.text().replace(this.currency, "")  );
-        var after_price = (price * 0.6).toFixed(2);
-
-        if(!this.doneOnce){
-            current_price_dom.before("<span class='asos-mini-disco'> with ASOS discount</span>");
-            this.miniCartTotal = price;
+        var price = $('#miniBagApp .bag-link-price').text();
+        var currency = this.detectCurrency(price);
+        var disocuntedPrice = (parseFloat(price.replace(currency, '')) * 0.6).toFixed(2);
+        if(!isNaN(disocuntedPrice)){
+          $('#miniBagApp .bag-link-price').text(' with staff discount ' + currency + disocuntedPrice);
+          $('#miniBagApp .bag-link-price').addClass('first-load');
+          this.applyDiscountMiniCartUpdate();
         }
+    }
 
+    DISCO.prototype.applyDiscountCartPageUpdate = function(){
+      var _this = this;
+      setTimeout(function(){
+        _this.applyDiscountCartPage();
+      }, 1000);
+    };
 
-        if(!isNaN(price) && (price != this.miniCartTotal || !this.doneOnce) ){
-            //console.log("price", price);
-            current_price_dom.next(".new-total").remove();
-            current_price_dom.after("<span class='new-total' style='margin-left:7px;'>" + this.currency + after_price + "</span>");
-            current_price_dom.hide();
-            this.miniCartTotal = after_price;
-        }
-
+    DISCO.prototype.applyDiscountMiniCartUpdate = function(){
+        //Mini Cart
+        var _this = this;
+        setTimeout(function(){
+          var price = $('#miniBagApp .minibag-subtotal-price').text();
+          var currency = _this.detectCurrency(price);
+          var disocuntedPrice = (parseFloat(price.replace(currency, '')) * 0.6).toFixed(2);
+          $('#miniBagApp .asos-mini-discount-price').remove();
+          if(!isNaN(disocuntedPrice)){
+            $('#miniBagApp .minibag-subtotal-holder').after('<div class="asos-mini-discount-price" style="font-size: 13px;font-weight:400;margin-bottom:10px;font-family:Tahoma,Arial,sans-serif;padding: 10px 0;background: #fffbbf;text-align:left;padding-left:18px;">Discounted Sub-total <span style="font-weight:400;float:right;min-width:55px;padding-right:10px;">' + currency + disocuntedPrice + '<span></div>');
+          }
+        }, 1000);
     }
 
     new DISCO();
