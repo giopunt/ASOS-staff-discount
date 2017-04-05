@@ -64,7 +64,19 @@
         $('.component.might-like .arrow.active, .component.might-like ul.nav li a').on('click', _this.applyDiscountYMAL.bind(_this))
         _this.applyDiscountMiniCart();
       }),2000);
+      
 
+      var d1 = new Date('04/03/2017');
+      var d2 = new Date('04/05/2017');
+      d1.setHours(8);
+      d2.setHours(8);
+      var today = new Date();
+      var isSalePeriod = today > d1 && today < d2;
+
+      if(isSalePeriod){
+        $('body').after('<div style="box-sizing:border-box;text-align:center;position:fixed;width:100%;top:0;left:0;background-color: red;color: #fff;padding: 10px;z-index: 999;font-size: 16px;"><b>SALE EMBARGO</b> - You won&apos;t be able to shop ANY red penned items on the site from 8:00am on Monday 3 April until 8:00am on Wednesday 5 April. <a style="color:#fff;" target="_blank" href="http://bit.ly/2njCAoZ">FAQ<a></div>');
+        $('body').css('padding-top', '40px');
+      }
     }
 
     DISCO.prototype.fetchPageType = function(){
@@ -86,6 +98,8 @@
             isBeauty = true;
         }else if(document.getElementById("CategoryName")){
             isBeauty = document.getElementById("CategoryName").value.toLowerCase() == "beauty";
+        }else if( document.getElementById("breadcrumb")){
+            isBeauty = document.getElementById("breadcrumb").innerText.indexOf('Beauty') > -1 && document.getElementById("breadcrumb").innerText.indexOf('Women') > -1;
         }
 
         return isBeauty;
@@ -183,7 +197,8 @@
 
     DISCO.prototype.applyDiscountPDP = function(){
         //Product Page
-        var discountFactor = ((this.Gender == "women") && this.isBeautyProduct) ? 0.8 : 0.6;
+        var discountFactor = (this.isBeautyProduct) ? 0.8 : 0.6;
+        var beautyTXT = this.isBeautyProduct ? '(beauty)' : '';
 
         if(typeof(this.priceContainer) !== "undefined"){
 
@@ -197,7 +212,7 @@
 
                     if(!isNaN(after_price)){
                         var inner_html = "<div class='disco-applied' style='margin: 10px -10px 10px;padding: 10px;background: #fffbbf;color: #000 !important;font-weight: 400;'>";
-                        inner_html += "<div style=''>with ASOS discount</div>" + "<div style='font-weight:700;'>"+ this.currency + after_price + "</div>";
+                        inner_html += "<div style=''>with ASOS discount " + beautyTXT +"</div>" + "<div style='font-weight:700;'>"+ this.currency + after_price + "</div>";
                         inner_html += "<div style='font-size:14px;'>You save</div>" + "<div style='font-weight: 700;font-size:14px;'>"+ this.currency + (price - after_price).toFixed(2) + "!</div>";
                         inner_html += "</div>";
 
@@ -249,7 +264,7 @@
 
     DISCO.prototype.applyDiscountCategoryPage = function(){
         //Category
-        var discountFactor = ((this.Gender == "women") && this.isBeautyProduct) ? 0.8 : 0.6;
+        var discountFactor = (this.isBeautyProduct) ? 0.8 : 0.6;
 
         if(!this.isDiscountApplied() && typeof(this.priceContainer) !== "undefined"){
 
