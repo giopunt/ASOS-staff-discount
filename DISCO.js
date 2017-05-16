@@ -74,7 +74,7 @@
       var isSalePeriod = today > d1 && today < d2;
 
       if(isSalePeriod){
-        $('body').after('<div style="box-sizing:border-box;text-align:center;position:fixed;width:100%;top:0;left:0;background-color: red;color: #fff;padding: 10px;z-index: 999;font-size: 16px;"><b>SALE EMBARGO</b> - You won&apos;t be able to shop ANY red penned items on the site from 8:00am on Monday 3 April until 8:00am on Wednesday 5 April. <a style="color:#fff;" target="_blank" href="http://bit.ly/2njCAoZ">FAQ<a></div>');
+        $('body').after('<div style="box-sizing:border-box;text-align:center;position:fixed;width:100%;top:0;left:0;background-color: red;color: #fff;padding: 10px;z-index: 999;font-size: 16px;"><b>SALE EMBARGO</b> - You won&apos;t be able to shop ANY red penned items on the site from 7:00 am on Monday 29 May until 8:00 am on Tuesday 30 May. <a style="color:#fff;" target="_blank" href="http://bit.ly/2njCAoZ">FAQ<a></div>');
         $('body').css('padding-top', '40px');
       }
     }
