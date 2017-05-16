@@ -66,9 +66,9 @@
       }),2000);
       
 
-      var d1 = new Date('04/03/2017');
-      var d2 = new Date('04/05/2017');
-      d1.setHours(8);
+      var d1 = new Date('05/29/2017'); // MM-DD-YYYY
+      var d2 = new Date('05/30/2017'); // MM-DD-YYYY
+      d1.setHours(7);
       d2.setHours(8);
       var today = new Date();
       var isSalePeriod = today > d1 && today < d2;
