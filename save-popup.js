@@ -32,9 +32,10 @@ function load_options() {
         setStatus(yesOrNo);
         $("#cmn-toggle-1").attr("checked", false);
     }
-}
+} 
 
 function setStatus(yesOrNo){
-    var status = yesOrNo ? "ON" : "OFF";
+    var status = yesOrNo ? "ON" : "OFF";        
+    chrome.browserAction.setIcon({path: yesOrNo?"icon-on-16.png": "icon-16.png"});
     $("#status").text(status);
 }
