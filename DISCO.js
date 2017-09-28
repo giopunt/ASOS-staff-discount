@@ -66,17 +66,24 @@
       }),2000);
       
 
-      var d1 = new Date('06/18/2017'); // MM-DD-YYYY
-      var d2 = new Date('06/21/2017'); // MM-DD-YYYY
-      d1.setHours(11);
-      d1.setMinutes(59);
-      d2.setHours(8);
-      d2.setMinutes(0);
-      var today = new Date();
-      var isSalePeriod = today > d1 && today < d2;
+      var embargoStartDate = new Date('10/01/2017'); // MM-DD-YYYY
+      var embragoEndDate = new Date('10/04/2017'); // MM-DD-YYYY
 
-      if(isSalePeriod){
-        $('body').after('<div style="box-sizing:border-box;text-align:center;position:fixed;width:100%;top:0;left:0;background-color: red;color: #fff;padding: 10px;z-index: 999;font-size: 16px;"><b>SALE EMBARGO</b> - You won&apos;t be able to shop ANY red penned items on the site from 11:59pm on Sunday 18 June until 8:00am on Wednesday 21 June. <a style="color:#fff;" target="_blank" href="http://bit.ly/2njCAoZ">FAQ<a></div>');
+      embargoStartDate.setHours(11); // Embargo start hour
+      embargoStartDate.setMinutes(59); // Embargo start minutes
+
+      embragoEndDate.setHours(8); // Embargo end hour
+      embragoEndDate.setMinutes(0); // Embargo end minutes
+      
+      var today = new Date();
+      var displayWarningMessage = today > embargoStartDate && today < embragoEndDate;
+
+      if(displayWarningMessage){
+        var embargoMessage = '<div style="box-sizing:border-box;text-align:center;position:fixed;width:100%;top:0;left:0;background-color: red;color: #fff;padding: 10px;z-index: 999;font-size: 16px;">';
+        embargoMessage += '<b>SALE EMBARGO</b> <br/> You won&apos;t be able to shop ANY red penned items on the site from ';
+        embargoMessage += 'Sunday 1 October, 11:59pm until Wednesday 4 October, 8:00am.'
+        embargoMessage += '<a style="color:#fff;" target="_blank" href="http://bit.ly/2njCAoZ">FAQ<a></div>';
+        $('body').after(embargoMessage);
         $('body').css('padding-top', '40px');
       }
     }
